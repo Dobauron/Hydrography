@@ -2,74 +2,92 @@ import sympy as sp
 from sympy.vector import CoordSys3D, gradient, divergence, curl
 
 
-class TemperatureAnalyzer:
-    """Klasa do analizy pól skalarnych temperatury i pól wektorowych przepływu."""
-
+class TemperatureReport:
     def __init__(self):
-        # Inicjalizacja układu współrzędnych
+        """
+        Konstruktor: Przygotowuje 'scenę' do obliczeń.
+        Tworzy układ współrzędnych R i definiuje stały punkt P(1,1,1).
+        """
         self.R = CoordSys3D('R')
-        self.x, self.y, self.z = self.R.x, self.R.y, self.R.z
+        # Słownik mapujący symbole x,y,z na konkretną wartość 1
+        self.point = {self.R.x: 1, self.R.y: 1, self.R.z: 1}
 
-    def analyze(self, T, label):
-        """Przeprowadza pełną analizę fizyczną dla podanej funkcji T."""
-        print(f"=== ANALIZA PRZYKŁADU {label} ===")
-        print(f"Funkcja T(x,y,z) = {T}")
+    def run_full_analysis(self, functions_list):
+        """
+        Główna metoda sterująca: Przetwarza listę funkcji i generuje raport.
+        """
+        print("=" * 70)
+        print(f"{'RAPORT ANALIZY PÓL TEMPERATURY':^70}")
+        print("=" * 70)
 
-        # Obliczenia bazowe
-        grad_T = gradient(T)
-        F = -grad_T
-        div_F = divergence(F)
-        rot_F = curl(F)
-        laplace_T = divergence(gradient(T))
+        for label, T in functions_list:
+            # --- 1. OBLICZENIA SYMBOLICZNE (Wzory ogólne) ---
+            # Gradient T: pokazuje kierunek najszybszego wzrostu temperatury
+            grad_T = gradient(T)
 
-        # Wyświetlanie wyników
-        self._display_results(grad_T, F, div_F, rot_F, laplace_T)
+            # Pole F: wektor przepływu ciepła (zawsze przeciwny do gradientu)
+            F = -grad_T
 
-        # Interpretacja fizyczna w punkcie (1, 1, 1)
-        self._interpret_physics(div_F, rot_F, {self.x: 1, self.y: 1, self.z: 1})
-        print("\n" + "=" * 40 + "\n")
+            # Dywergencja F: mówi czy w polu są źródła energii (rozbieżność)
+            div_F = divergence(F)
 
-    def _display_results(self, grad_T, F, div_F, rot_F, laplace_T):
-        print(f"• Gradient ∇T: {grad_T}")
-        print(f"• Pole przepływu F (-∇T): {F}")
-        print(f"• Dywergencja div(F): {div_F}")
-        print(f"• Rotacja rot(F): {rot_F}")
-        print(f"• Operator Laplace'a ΔT: {laplace_T}")
+            # Rotacja F: sprawdza czy pole 'wiruje' (dla gradientu zawsze 0)
+            rot_F = curl(F)
 
-    def _interpret_physics(self, div_F, rot_F, point_coords):
-        val_div = div_F.subs(point_coords).evalf()
+            # Operator Laplace'a: opisuje 'wybrzuszenia' rozkładu temperatury
+            laplace_T = divergence(gradient(T))
 
-        print(f"--- Interpretacja fizyczna w punkcie {list(point_coords.values())} ---")
+            # --- 2. OBLICZENIA PUNKTOWE (Konkretne wartości) ---
+            # .subs(self.point) -> podmienia x, y, z na 1, 1, 1
+            # .evalf(3) -> oblicza wartość numeryczną i zaokrągla do 3 miejsc po przecinku
 
-        # Analiza dywergencji (źródła/ujścia)
-        if val_div > 0:
-            print("  [!] Punkt jest ŹRÓDŁEM: Ciepło jest generowane/wypływa.")
-        elif val_div < 0:
-            print("  [!] Punkt jest UJŚCIEM: Ciepło jest pochłaniane/wpływa.")
-        else:
-            print("  [ ] Przepływ bezźródłowy: Zachowana ciągłość strumienia.")
+            # Obliczamy temperaturę w punkcie P
+            v_T = T.subs(self.point).evalf(3)
 
-        # Analiza rotacji (wirowość)
-        if rot_F.magnitude() == 0:
-            print("  [ ] Pole jest BEZWIROWE (jak każde pole gradientowe).")
-        else:
-            print("  [!] Uwaga: Wykryto wirowość (nietypowe dla czystego gradientu).")
+            # Sprawdzamy dywergencję w punkcie P (kluczowe dla interpretacji fizycznej)
+            v_div = div_F.subs(self.point).evalf(3)
+
+            # Obliczamy Laplasjan w punkcie P
+            v_lap = laplace_T.subs(self.point).evalf(3)
+
+            # --- 3. SEKCJA WYŚWIETLANIA ---
+            print(f"\n>>> PRZYKŁAD {label}: T(x,y,z) = {T}")
+            print("-" * 40)
+            print(f"1. Gradient (grad T):      {grad_T}")
+            print(f"2. Pole przepływu (F):     {F}")
+            print(f"3. Dywergencja (div F):    {div_F}")
+            print(f"4. Rotacja (rot F):        {rot_F}")
+            print(f"5. Laplasjan (ΔT):         {laplace_T}")
+            print("-" * 40)
+            print(f"WARTOŚCI W PUNKCIE (1, 1, 1):")
+            print(f"   T = {v_T} (Temperatura w tym miejscu)")
+            print(f"   div F = {v_div} (Bilans energii w tym miejscu)")
+            print(f"   ΔT = {v_lap} (Zależne od div F)")
+
+            # Prosta logika decyzyjna na podstawie znaku dywergencji
+            if v_div > 0:
+                wniosek = "ŹRÓDŁO (ciepło wypływa z tego punktu)"
+            elif v_div < 0:
+                wniosek = "UJŚCIE (ciepło jest pochłaniane w tym punkcie)"
+            else:
+                wniosek = "BEZZRÓDŁOWE (przepływ jest stały i zachowawczy)"
+
+            print(f"INTERPRETACJA: {wniosek}")
+            print("-" * 70)
 
 
-# --- URUCHOMIENIE ---
+# --- INICJALIZACJA I START ---
+report = TemperatureReport()
+R = report.R
+
+# Lista krotek: (Numer zadania, Formuła matematyczna)
+odd_tasks = [
+    (1, 10 + R.x ** 2 + R.y ** 2 - R.z),
+    (3, 5 + R.x - R.y + 2 * R.z),
+    (5, 15 - 2 * R.z),
+    (7, R.x ** 2 + R.y ** 2 + 2 * R.z ** 2),
+    (9, sp.sin(R.x) + sp.cos(R.y) + R.z)
+]
 
 if __name__ == "__main__":
-    analyzer = TemperatureAnalyzer()
-    R = analyzer.R
-
-    # Lista tylko nieparzystych funkcji (1, 3, 5, 7, 9)
-    odd_functions = [
-        (1, 10 + R.x ** 2 + R.y ** 2 - R.z),
-        (3, 5 + R.x - R.y + 2 * R.z),
-        (5, 15 - 2 * R.z),
-        (7, R.x ** 2 + R.y ** 2 + 2 * R.z ** 2),
-        (9, sp.sin(R.x) + sp.cos(R.y) + R.z)
-    ]
-
-    for label, func in odd_functions:
-        analyzer.analyze(func, label)
+    report.run_full_analysis(odd_tasks)
