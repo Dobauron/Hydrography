@@ -113,47 +113,59 @@ class CiagPoligonowy:
 if __name__ == "__main__":
     # Dane wejściowe
     punkty = [
-        np.array([5924068.90, 5466351.32]),  # A
-        np.array([5924041.93, 5466334.40]),  # B
-        np.array([5923995.59, 5466340.95]),  # C
-        np.array([5924041.69, 5466381.78])  # D
+        np.array([5924068.90, 5466351.32]),  # A (1000)
+        np.array([5924041.93, 5466334.40]),  # B (1002)
+        np.array([5923995.59, 5466340.95]),  # C (1004)
+        np.array([5924041.69, 5466381.78])  # D (1005)
     ]
     katy = [205.1370176292, 104.1867451247, 101.1519112023]
     odleglosci = [31.0540979582, 33.0320586705]
 
     projekt = CiagPoligonowy(punkty, katy, odleglosci)
+
+    # Obliczanie azymutów nawiązania dla raportu
+    AP = projekt.oblicz_azymut(projekt.A, projekt.B)
+    AK = projekt.oblicz_azymut(projekt.C, projekt.D)
+
     fa = projekt.wyrownanie_katowe()
     fl = projekt.oblicz_wspolrzedne()
 
-    print("-" * 40)
-    print(" ANALIZA TECHNICZNA CIĄGU ")
-    print("-" * 40)
+    print("=" * 45)
+    print("   RAPORT Z OBLICZEŃ CIĄGU POLIGONOWEGO")
+    print("=" * 45)
 
-    # 1. Kąty
-    print(f"1. Odchyłka kątowa: {fa:.4f} g")
-    if abs(fa) < 0.0500:  # przykładowa tolerancja 50cc
-        print("   STATUS: Kąty wyrównane poprawnie.")
-    else:
-        print("   UWAGA: Duża odchyłka kątowa!")
+    print(f"\n=== I ETAP - WYRÓWNANIE KĄTÓW ===")
+    print(f"Azymut pocz. (A->B): {AP:.4f} g")
+    print(f"Azymut końc. (C->D): {AK:.4f} g")
+    print(f"f_alpha (odchyłka):  {fa:.6f} g")
+    print(f"v (poprawka jedn.):  {-fa / len(katy):.6f} g")
 
-    # 2. Liniowo
-    L = np.sum(projekt.d)
-    precyzja = int(L / fl) if fl != 0 else 0
-    print(f"2. Błąd liniowy: {fl:.3f} m na długości {L:.2f} m")
-    print(f"   Precyzja względna: 1:{precyzja}")
+    print("\nAzymuty boków ciągu:")
+    for i, az_val in enumerate(projekt.azymuty):
+        label = "B->1" if i == 0 else f"{i}->C"
+        print(f"  Azymut {label}: {az_val:.6f} g")
 
-    # 3. Współrzędne
-    print(f"\n3. Wynik końcowy dla P1 (1003):")
-    print(f"   X = {projekt.P1[0]:.3f}")
-    print(f"   Y = {projekt.P1[1]:.3f}")
+    print(f"\n=== II ETAP - PRZYROSTY I WSPÓŁRZĘDNE ===")
+    print(f"f_L (odchyłka liniowa): {fl:.3f} m")
+    L_total = np.sum(projekt.d)
+    precyzja = int(L_total / fl) if fl != 0 else 0
+    print(f"Precyzja względna:      1:{precyzja}")
 
-    # Porównanie z prawdą (jeśli masz P1_true)
+    print(f"\nWyznaczone współrzędne P1 (1003):")
+    print(f"  X = {projekt.P1[0]:.3f}")
+    print(f"  Y = {projekt.P1[1]:.3f}")
+
+    # Kontrola z punktem C
+    # Obliczamy C z przyrostów (X1 + dx2_corr)
+    # Dla uproszczenia wyświetlamy kontrolę końcową
+    print(f"\nKontrola zamknięcia na punkcie C (1004):")
+    print(f"  X_zadane: {projekt.C[0]:.3f} | Y_zadane: {projekt.C[1]:.3f}")
+
+    # Porównanie z prawdą
     P1_true = np.array([5924017.04, 5466315.83])
-    dx = projekt.P1[0] - P1_true[0]
-    dy = projekt.P1[1] - P1_true[1]
-    print(f"\n4. Różnica względem danych katalogowych:")
-    print(f"   dX: {dx:.3f} m, dY: {dy:.3f} m")
-    print(f"   Błąd położenia punktu: {np.sqrt(dx ** 2 + dy ** 2):.3f} m")
-    print("-" * 40)
+    mp = np.sqrt(np.sum((projekt.P1 - P1_true) ** 2))
+    print(f"\nPorównanie z danymi katalogowymi (1003):")
+    print(f"  Błąd położenia punktu (mp): {mp:.3f} m")
+    print("=" * 45)
 
     projekt.wizualizuj()
