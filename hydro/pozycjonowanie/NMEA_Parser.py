@@ -19,12 +19,12 @@ class NMEAParser:
             data_to_check = sentence[1:star_index]
             provided_checksum = sentence[star_index + 1: star_index + 3]
 
-            calculated_checksum = 0 # zmienna inicjalna
-            for char in data_to_check: # iteracja po każdym znaku sentencji NMEA
-                calculated_checksum ^= ord(char) #Porównywanie bitowej sumy obecnego znaku iteracji z poprzednim
+            calculated_checksum = 0  # zmienna inicjalna
+            for char in data_to_check:  # iteracja po każdym znaku sentencji NMEA
+                calculated_checksum ^= ord(char)  # Porównywanie bitowej sumy obecnego znaku iteracji z poprzednim
             return f"{calculated_checksum:02X}" == provided_checksum.upper()
-            #konwersja na format hexadecymalny
-            #i porównanie z ostatnimi dwoma znakami NMEA, także w HEXA
+            # konwersja na format hexadecymalny
+            # i porównanie z ostatnimi dwoma znakami NMEA, także w HEXA
         except Exception:
             return False
 
