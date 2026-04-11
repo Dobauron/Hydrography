@@ -69,11 +69,10 @@ class RaportGeodezyjny:
 
 
 # --- DANE ZADANIA ---
-# Współrzędne osnowy (z image_dab81a.png)
+# Współrzędne osnowy
 s1004 = Punkt(5923995.565, 5466340.928, "1004")
 s1005 = Punkt(5924041.703, 5466381.792, "1005")
 
-# Dane z dziennika (image_db3aa1.png)
 # Hz na nawiązanie to odczyt Kierunku Hz na drugi punkt osnowy
 hz_na_1005 = 46.14531
 hz_na_1004 = 246.14531
