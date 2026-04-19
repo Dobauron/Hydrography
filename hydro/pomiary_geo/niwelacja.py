@@ -69,17 +69,42 @@ class CiagNiwelacyjny:
         for pkt, h in punkty:
             print(f"  {pkt:<10}: {h:.4f}")
 
+
 def kontrola_gnss(dane: list[tuple[int, float]]):
-    suma_dh = sum(dane[i][1] - dane[i-1][1] for i in range(1, len(dane)))
+    # Obliczamy różnice między kolejnymi punktami
+    dh_list = [dane[i][1] - dane[i - 1][1] for i in range(1, len(dane))]
+
+    suma_dh = sum(dh_list)
     skrajne = dane[-1][1] - dane[0][1]
-    print(f"\nGNSS Check: Suma dH = {suma_dh:.4f}, Hn-H1 = {skrajne:.4f}")
-    print("Status: " + ("OK" if abs(suma_dh - skrajne) < 1e-9 else "BŁĄD W DANYCH"))
-    #abs = wartość bezwzględna liczby
+
+    # Dodatkowe statystyki do analizy
+    max_skok = max(dh_list, key=abs)
+    min_skok = min(dh_list, key=abs)
+    sr_dh = suma_dh / len(dh_list)
+
+    print(f"\n--- SZCZEGÓŁOWY RAPORT GNSS ---")
+    print(f"Liczba pomierzonych punktów: {len(dane)}")
+    print(f"Suma przyrostów (dH):        {suma_dh:.4f} m")
+    print(f"Różnica H_ostatni - H_pierwszy: {skrajne:.4f} m")
+
+    print("-" * 35)
+    print(f"Maksymalny skok wysokości:    {max_skok:+.4f} m")
+    print(f"Minimalny skok wysokości:    {min_skok:+.4f} m")
+    print(f"Średnie przewyższenie:        {sr_dh:+.4f} m")
+
+    status = "OK (Dane spójne)" if abs(suma_dh - skrajne) < 1e-9 else "BŁĄD W DANYCH"#abs = wartość bezwzględna liczby
+    print("-" * 35)
+    print(f"STATUS KONTROLI: {status}")
+
+
 
 # --- Uruchomienie ---
 if __name__ == "__main__":
-    # Dane zadania 1
-    zad1 = CiagNiwelacyjny("Rp.1345 -> Rp.1346", 234.567)
+    # ======================================================
+    # ZADANIE 1 - Analiza Teoretyczna (Rp.1345 -> Rp.1346)
+    # ======================================================
+    # Używamy wysokości h_start = 234.5670 zgodnie z raportem
+    zad1 = CiagNiwelacyjny("ZADANIE 1 - Analiza Teoretyczna", h_start=234.5670, zamkniety=False)
     zad1.wczytaj_dane([
         {"od": "Rp.1345", "do": "R1", "t1": 1220, "p1": 2344, "t2": 1246, "p2": 2368},
         {"od": "R1", "do": "R2-1", "t1": 1642, "p1": 1530, "t2": 1654, "p2": 1538},
@@ -88,10 +113,13 @@ if __name__ == "__main__":
     ])
     zad1.raport()
 
-    # ZADANIE 2 - Niwelacja geometryczna (dane ze zdjęcia)
-    zad2 = CiagNiwelacyjny("Pomiar Kampusu - Zadanie 2", h_start=31.9862, zamkniety=True)
+    print("\n" + "=" * 54)
 
-    # dodaj(od, do, t1, p1, t2, p2)
+    # ======================================================
+    # ZADANIE 2 - Niwelacja Geometryczna (Pomiar Kampusu)
+    # ======================================================
+    zad2 = CiagNiwelacyjny("ZADANIE 2 - Niwelacja Geometryczna (Kampus)", h_start=31.9862, zamkniety=True)
+
     dane_zad2 = [
         {"od": "REPER", "do": "ZABKA_1", "t1": 1123, "p1": 1217, "t2": 949, "p2": 1042},
         {"od": "ZABKA_1", "do": "STU 1", "t1": 893, "p1": 1044, "t2": 1106, "p2": 1256},
@@ -106,15 +134,18 @@ if __name__ == "__main__":
         {"od": "ZABKA_2", "do": "REPER", "t1": 1210, "p1": 1018, "t2": 1307, "p2": 1115},
     ]
     zad2.wczytaj_dane(dane_zad2)
-
-
     zad2.raport()
 
-    # ZADANIE 3 - Dane z Twojego pliku niwelacja_gnss.txt
+    print("\n" + "=" * 54)
+
+    # ======================================================
+    # ZADANIE 3 - Niwelacja Satelitarna GNSS
+    # ======================================================
+    print("--- RAPORT: ZADANIE 3 - Analiza Danych GNSS ---")
     dane_z_pliku_gnss = [
         (1, 31.9862), (2, 32.3930), (3, 31.7258), (5, 31.7419),
         (6, 31.6043), (7, 31.6690), (8, 31.5655), (9, 31.1342),
         (10, 31.6576), (13, 31.9611), (14, 31.8220), (15, 32.0793)
     ]
-
     kontrola_gnss(dane_z_pliku_gnss)
+    print("=" * 54)
