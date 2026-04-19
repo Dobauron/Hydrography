@@ -89,8 +89,6 @@ if __name__ == "__main__":
     zad1.raport()
 
     # ZADANIE 2 - Niwelacja geometryczna (dane ze zdjęcia)
-    # Przyjmuję przykładową wysokość reperu 234.567.
-    # Jeśli na Moodle masz inną, zmień ją w poniższej linii:
     zad2 = CiagNiwelacyjny("Pomiar Kampusu - Zadanie 2", h_start=31.9862, zamkniety=True)
 
     # dodaj(od, do, t1, p1, t2, p2)
@@ -113,7 +111,6 @@ if __name__ == "__main__":
     zad2.raport()
 
     # ZADANIE 3 - Dane z Twojego pliku niwelacja_gnss.txt
-    # (Wysokości H wyciągnięte bezpośrednio z pliku tekstowego)
     dane_z_pliku_gnss = [
         (1, 31.9862), (2, 32.3930), (3, 31.7258), (5, 31.7419),
         (6, 31.6043), (7, 31.6690), (8, 31.5655), (9, 31.1342),
